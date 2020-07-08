@@ -1,15 +1,16 @@
 package com.comulynx.wallet.rest.api.repository;
 
-import java.util.Optional;
-
+import com.comulynx.wallet.rest.api.model.Customer;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import com.comulynx.wallet.rest.api.model.Customer;
+import java.util.Optional;
 
 @Repository
-public interface CustomerRepository extends JpaRepository<Customer, Long> {
+public interface CustomerRepository extends JpaRepository<Customer, String> {
 
+	@Query("SELECT c FROM Customer c WHERE c.customerId =?1")
 	Optional<Customer> findByCustomerId(String customerId);
 
 	// TODO : Implement the query and function below to delete a customer using Customer Id
@@ -22,5 +23,5 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
 	
 	// TODO : Implement the query and function below and to return all customers whose Email contains  'gmail'
 	// @Query("?")
-	// List<Customer> findAllCustomersWhoseEmailContainsGmail();
+	//List<Customer> findAllCustomersWhoseEmailContainsGmail();
 }

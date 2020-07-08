@@ -1,21 +1,5 @@
 package com.comulynx.wallet.rest.api.controller;
 
-import java.util.List;
-import java.util.Random;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.comulynx.wallet.rest.api.AppUtilities;
 import com.comulynx.wallet.rest.api.exception.ResourceNotFoundException;
 import com.comulynx.wallet.rest.api.model.Account;
@@ -24,8 +8,21 @@ import com.comulynx.wallet.rest.api.repository.AccountRepository;
 import com.comulynx.wallet.rest.api.repository.TransactionRepository;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-@CrossOrigin(origins = "http://localhost:4200")
+import java.util.List;
+import java.util.Optional;
+import java.util.Random;
+
+//@CrossOrigin(origins = "http://localhost:4200")
 @RestController
 @RequestMapping("/api/v1/transactions")
 public class TransactionController {
@@ -56,11 +53,11 @@ public class TransactionController {
 		try {
 			final JsonObject req = gson.fromJson(request, JsonObject.class);
 			String customerId = req.get("customerId").getAsString();
-
-			// TODO : Add login here to get Last 100 Transactions By CustomerId
-			List<Transaction> last100Transactions = null;
-
-			return ResponseEntity.ok().body(gson.toJson(last100Transactions));
+			Pageable pageable = PageRequest.of(0, 100);
+			Optional<List<Transaction>> last100Transactions = transactionRepository.findLast100TransactionsByCustomerId(customerId, pageable);
+			if (last100Transactions.isPresent())
+				return ResponseEntity.ok().body(gson.toJson(last100Transactions.get()));
+			else throw new Exception("Error fetching customer's last 100 txns");
 		} catch (Exception ex) {
 			logger.info("Exception {}", AppUtilities.getExceptionStacktrace(ex));
 

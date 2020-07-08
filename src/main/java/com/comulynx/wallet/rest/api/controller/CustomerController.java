@@ -1,19 +1,5 @@
 package com.comulynx.wallet.rest.api.controller;
 
-import java.util.List;
-
-import javax.validation.Valid;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.comulynx.wallet.rest.api.AppUtilities;
 import com.comulynx.wallet.rest.api.model.Account;
 import com.comulynx.wallet.rest.api.model.Customer;
@@ -21,11 +7,20 @@ import com.comulynx.wallet.rest.api.repository.AccountRepository;
 import com.comulynx.wallet.rest.api.repository.CustomerRepository;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
+import java.util.List;
+import java.util.Optional;
 
 
-@CrossOrigin(origins = "http://localhost:4200")
+//@CrossOrigin(origins = "http://localhost:4200")
 @RestController
 @RequestMapping("/api/v1/customers")
 public class CustomerController {
@@ -53,27 +48,22 @@ public class CustomerController {
 	@PostMapping("/login")
 	public ResponseEntity<?> customerLogin(@RequestBody String request) {
 		try {
-			JsonObject response = new JsonObject();
-
 			final JsonObject req = gson.fromJson(request, JsonObject.class);
 			String customerId = req.get("customerId").getAsString();
 			String customerPIN = req.get("pin").getAsString();
-
-			// TODO : Add Customer login logic here. Login using customerId and
-			// PIN
-			// NB: We are using plain text password for testing Customer login
-			// If customerId doesn't exists throw an error "Customer does not exist"
-			// If password do not match throw an error "Invalid credentials"
-			
-			//TODO : Return a JSON object with the following after successful login
-			//Customer Name, Customer ID, email and Customer Account 
-
-			return ResponseEntity.status(200).body(HttpStatus.OK);
+			Optional<Customer> customer = customerRepository.findByCustomerId(customerId);
+			if (customer.isPresent()) {
+				JsonObject response = new JsonParser().parse(gson.toJson(customer.get())).getAsJsonObject();
+				response.remove("id");
+				if (response.remove("pin").getAsString().equals(customerPIN)) {
+					response.addProperty("accountNo", accountRepository.findAccountNoByCustomerId(customerId));
+					return ResponseEntity.ok().body(response.toString());
+				} else throw new Exception("Invalid credentials");
+			} else throw new Exception("Customer does not exist");
 
 		} catch (Exception ex) {
 			logger.info("Exception {}", AppUtilities.getExceptionStacktrace(ex));
 			return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-
 		}
 	}
 

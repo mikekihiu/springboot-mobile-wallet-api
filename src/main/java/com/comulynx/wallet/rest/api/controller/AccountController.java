@@ -1,27 +1,22 @@
 package com.comulynx.wallet.rest.api.controller;
 
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.comulynx.wallet.rest.api.AppUtilities;
 import com.comulynx.wallet.rest.api.exception.ResourceNotFoundException;
 import com.comulynx.wallet.rest.api.model.Account;
 import com.comulynx.wallet.rest.api.repository.AccountRepository;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-@CrossOrigin(origins = "http://localhost:4200")
+import java.util.List;
+import java.util.Optional;
+
+//@CrossOrigin(origins = "http://localhost:4200")
 @RestController
 @RequestMapping("/api/v1/accounts")
 public class AccountController {
@@ -42,23 +37,18 @@ public class AccountController {
 	public ResponseEntity<?> getAccountBalanceByCustomerIdAndAccountNo(@RequestBody String request)
 			throws ResourceNotFoundException {
 		try {
-			JsonObject response = new JsonObject();
-
 			final JsonObject balanceRequest = gson.fromJson(request, JsonObject.class);
 			String customerId = balanceRequest.get("customerId").getAsString();
-
-
-			// TODO : Add logic to find Account balance by CustomerId
-			Account account = null;
-
-			response.addProperty("balance", account.getBalance());
-			response.addProperty("accountNo", account.getAccountNo());
-			return ResponseEntity.ok().body(gson.toJson(response));
+			Optional<Account> account = accountRepository.findAccountByCustomerId(customerId);
+			if (account.isPresent()) {
+				JsonObject response = new JsonObject();
+				response.addProperty("balance", account.get().getBalance());
+				response.addProperty("accountNo", account.get().getAccountNo());
+				return ResponseEntity.ok().body(gson.toJson(response));
+			} else throw new Exception("Account not found");
 		} catch (Exception ex) {
 			logger.info("Exception {}", AppUtilities.getExceptionStacktrace(ex));
-
 			return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-
 		}
 	}
 }
