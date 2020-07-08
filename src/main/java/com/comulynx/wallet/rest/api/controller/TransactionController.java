@@ -142,9 +142,9 @@ public class TransactionController {
 			String customerId = balanceRequest.get("customerId").getAsString();
 			String accountNo = balanceRequest.get("accountNo").getAsString();
 
-			// FIXME: Should return last 5 transactions from the database
 			List<Transaction> miniStatement = transactionRepository
-					.getMiniStatementUsingCustomerIdAndAccountNo(customerId, accountNo);
+					.getMiniStatementUsingCustomerIdAndAccountNo(customerId, accountNo, PageRequest.of(0, 5))
+					.orElseThrow(() -> new Exception("Mini statement not found"));
 
 			return ResponseEntity.ok().body(gson.toJson(miniStatement));
 		} catch (Exception ex) {
