@@ -14,6 +14,9 @@ public interface CustomerRepository extends JpaRepository<Customer, String> {
 	@Query("SELECT c FROM Customer c WHERE c.customerId =?1")
 	Optional<Customer> findByCustomerId(String customerId);
 
+	@Query("SELECT c FROM Customer c WHERE c.customerId =?1 OR c.email = ?2")
+	Optional<Customer> findByCustomerIdOrEmail(String customerId, String email);
+
 	@Query("DELETE from Customer c WHERE c.customerId =?1")
 	int deleteCustomerByCustomerId(String customer_id);
 

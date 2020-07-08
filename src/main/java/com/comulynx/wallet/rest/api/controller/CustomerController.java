@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.security.MessageDigest;
 import java.util.List;
 import java.util.Optional;
 
@@ -80,11 +81,13 @@ public class CustomerController {
 		try {
 			String customerPIN = customer.getPin();
 			String email = customer.getEmail();
-			
-			// TODO : Add logic to Hash Customer PIN here
-			//  : Add logic to check if Customer with provided email, or
-			// customerId exists. If exists, throw a Customer with [?] exists
-			// Exception.
+
+			if (customerRepository.findByCustomerIdOrEmail(customer.getCustomerId(), email).isPresent())
+				throw new Exception("Customer already exists");
+
+			MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
+			messageDigest.update(customerPIN.getBytes());
+			String hashedPin = new String(messageDigest.digest());
 
 			String accountNo = generateAccountNo(customer.getCustomerId());
 			Account account = new Account();
@@ -110,8 +113,7 @@ public class CustomerController {
 	 * 
 	 */
 	private String generateAccountNo(String customerId) {
-		// TODO : Add logic here - generate a random but unique Account No (NB:
 		// Account No should be unique in the accounts table)
-		return "";
+		return "ACC".concat(customerId).concat(String.valueOf(System.currentTimeMillis()));
 	}
 }
