@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -13,15 +14,12 @@ public interface CustomerRepository extends JpaRepository<Customer, String> {
 	@Query("SELECT c FROM Customer c WHERE c.customerId =?1")
 	Optional<Customer> findByCustomerId(String customerId);
 
-	// TODO : Implement the query and function below to delete a customer using Customer Id
-	// @Query("?")
-	// int deleteCustomerByCustomerId(String customer_id);
+	@Query("DELETE from Customer c WHERE c.customerId =?1")
+	int deleteCustomerByCustomerId(String customer_id);
 
-	// TODO : Implement the query and function below to update customer firstName using Customer Id
-	// @Query("?")
-	// int updateCustomerByCustomerId(String firstName, String customer_id);
-	
-	// TODO : Implement the query and function below and to return all customers whose Email contains  'gmail'
-	// @Query("?")
-	//List<Customer> findAllCustomersWhoseEmailContainsGmail();
+	@Query("UPDATE Customer c SET c.firstName = ?1 WHERE c.customerId = ?2")
+	int updateCustomerByCustomerId(String firstName, String customer_id);
+
+	@Query("SELECT c FROM Customer c WHERE c.email LIKE '%gmail%'")
+	List<Customer> findAllCustomersWhoseEmailContainsGmail();
 }
